@@ -1,0 +1,319 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+
+public class LibraryGuiApplication extends JFrame {
+    private JTextField titleField, authorField, isbnField;
+    private JTextArea bookListArea;
+    private ArrayList<Book> books = new ArrayList<>();
+
+    public LibraryGuiApplication() {
+        /*
+        CREATE GUI
+         */
+        setTitle("Library Management System");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(500, 500);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(6, 2));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+
+        inputPanel.add(new JLabel("Title:"));
+        titleField = new JTextField();
+        inputPanel.add(titleField);
+        inputPanel.add(new JLabel("Author:"));
+        authorField = new JTextField();
+        inputPanel.add(authorField);
+        inputPanel.add(new JLabel("ISBN:"));
+        isbnField = new JTextField();
+        inputPanel.add(isbnField);
+
+        /*
+        BUTTONS!
+         */
+        //add books to collection button
+        JButton addButton = new JButton("Add Book");
+        addButton.setMargin(new Insets(5,10,5,10));
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addBook();
+            }
+        });
+        inputPanel.add(addButton);
+
+        //check out books button
+        JButton CheckOutButton = new JButton("Check Out Book");
+        CheckOutButton.setMargin(new Insets(5,10,5,10));
+        CheckOutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                CheckOutBook();
+            }
+        });
+        inputPanel.add(CheckOutButton);
+
+        //check in books button
+        JButton CheckInButton = new JButton("Check In Book");
+        CheckInButton.setMargin(new Insets(5,10,5,10));
+        CheckInButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                CheckInBook();
+            }
+        });
+        inputPanel.add(CheckInButton);
+
+        //remove books by barcode button
+        JButton RemoveBarcodeButton = new JButton("Remove Book by Barcode");
+        RemoveBarcodeButton.setMargin(new Insets(5,10,5,10));
+        RemoveBarcodeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeByBarcode();
+            }
+        });
+        inputPanel.add(RemoveBarcodeButton);
+
+
+        //remove books by title button
+        JButton RemoveTitleButton = new JButton("Remove Book by Title");
+        RemoveTitleButton.setMargin(new Insets(5,10,5,10));
+        RemoveTitleButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeByTitle();
+            }
+        });
+        inputPanel.add(RemoveTitleButton);
+
+        //cancel and quit the program button
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setMargin(new Insets(5,10,5,10));
+        cancelButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e){
+            dispose();
+        }
+    });
+        inputPanel.add(cancelButton);
+
+        /*
+        LAYOUT OF GUI
+         */
+        mainPanel.add(inputPanel, BorderLayout.NORTH);
+        bookListArea = new JTextArea(); //display collection
+        mainPanel.add(new JScrollPane(bookListArea), BorderLayout.CENTER);
+        add(mainPanel);
+        setVisible(true);
+    }
+        /*
+        Allows user to enter title, searches for a book matching that title,
+        removes it if found and outputs to the user if it was deleted,
+        or if it was not found.
+         */
+    private void removeByTitle() {
+        String searchTerm = JOptionPane.showInputDialog(this, "Enter Title: ");
+        boolean found = false;
+        for (Book book : books) {
+            if (book.getTitle().equalsIgnoreCase(searchTerm)) {
+                found = true;
+                books.remove(book);
+                JOptionPane.showMessageDialog(this, "Book has been deleted successfully!");
+                refreshBookList();
+                break;
+            }
+        }
+        if (!found){
+            JOptionPane.showMessageDialog(this, "Book not found, please try again.");
+        }
+    }
+
+    /*
+       Allows user to enter the isbn, searches for a book matching that isbn,
+       removes it if found and outputs to the user if it was deleted,
+       or if it was not found.
+        */
+    private void removeByBarcode() {
+        String searchTerm = JOptionPane.showInputDialog(this, "Enter ISBN:");
+        boolean found = false;
+        for (Book book : books) {
+            if (book.getIsbn().equals(searchTerm)) {
+                found = true;
+                books.remove(book);
+                JOptionPane.showMessageDialog(this, "Book has been deleted successfully!");
+                refreshBookList();
+                break;
+            }
+        }
+        if (!found){
+            JOptionPane.showMessageDialog(this, "Book not found, please try again.");
+        }
+    }
+
+        /*
+        info is collected from user and displays the book information in the larger text area.
+        Adds a book to the list of books.
+         */
+    private void addBook() {
+        String title = titleField.getText();
+        String author = authorField.getText();
+        String isbn = isbnField.getText();
+
+        Book newBook = new Book(title, author, isbn);
+        books.add(newBook);
+
+        refreshBookList();
+    }
+/*
+User enters a title or isbn to search through the list of books,
+and mark the match (if found) as checked out;
+displays message to the user saying it was checked out or if it is unavailable at this time.
+ */
+    private void CheckOutBook() {
+        String searchTerm = JOptionPane.showInputDialog(this, "Enter title or ISBN:");
+        boolean found = false;
+        for (Book book : books) {
+            if (book.getTitle().equalsIgnoreCase(searchTerm) || book.getIsbn().equals(searchTerm)) {
+                found = true;
+                book.setCheckedOut(true); //set book to be checked out.
+                JOptionPane.showMessageDialog(this, "Book checked out successfully!");
+                refreshBookList();
+                break;
+            }
+            else{
+                JOptionPane.showMessageDialog(this, "Book is unavailable to be checked out at this time.");
+            }
+        }
+        if (!found){
+            JOptionPane.showMessageDialog(this, "Book not found, please try again.");
+        }
+
+    }
+
+    /*
+User enters a title or isbn to search through the list of books,
+and mark the match (if found) as checked in;
+displays message to the user saying it was checked in or if they need to see a librarian.
+ */
+    private void CheckInBook() {
+        String searchTerm = JOptionPane.showInputDialog(this, "Enter title or ISBN:");
+        boolean found = false;
+        for (Book book : books) {
+            if (book.getTitle().equalsIgnoreCase(searchTerm) || book.getIsbn().equals(searchTerm)) {
+                found = true;
+                book.setCheckedOut(true);
+                JOptionPane.showMessageDialog(this, "Book checked in successfully!");
+                refreshBookList();
+                break;
+            }
+            else{
+                JOptionPane.showMessageDialog(this, "Book is unavailable to be checked in at this time, please see Librarian!");
+            }
+        }
+        if (!found){
+            JOptionPane.showMessageDialog(this, "Book not found, please try again.");
+        }
+
+    }
+
+        /*
+        Iterates over each book in books, and displays all the books.
+        Called at the end of almost all methods to update and display changes to the list.
+         */
+    private void refreshBookList() {
+        StringBuilder sb = new StringBuilder();
+        for (Book book : books) {
+            sb.append(book).append("\n");
+        }
+        bookListArea.setText(sb.toString());
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new LibraryGuiApplication();
+            }
+        });
+    }
+}
+
+/*
+Creates, retrieves, and modifies book(s) elements. Getters & Setters.
+ */
+class Book {
+    private String title;
+    private String author;
+    private String isbn;
+    private boolean checkedOut;
+
+    public Book(String title, String author, String isbn) {
+        this.title = title;
+        this.author = author;
+        this.isbn = isbn;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+
+    public boolean isCheckedOut() {
+        return checkedOut;   }
+
+    public void setCheckedOut(boolean checkedOut) {
+        this.checkedOut = checkedOut;
+    }
+
+    @Override
+    public String toString() {
+        return "Title: " + title + ", Author: " + author + ", ISBN: " + isbn;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
